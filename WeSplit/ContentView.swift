@@ -8,16 +8,74 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var checkAmount = 0.0
+    @State private var numberOfPeople = 2
+    @State private var tipPercentage = 20
+    @FocusState private var amountIsFocused: Bool
+    
+    let localCurrency = Locale.current.currency?.identifier ?? "USD"
+        
+    var totalPerPerson: Double {
+        //calculte the total per person here
+        grandTotal / Double(numberOfPeople + 2)
+    }
+    
+    var grandTotal: Double {
+        let tipSelection = Double(tipPercentage)
+        let tipValue = checkAmount / 100 * tipSelection
+        return checkAmount + tipValue
+
+    }
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Amount", value: $checkAmount, format: .currency(code: localCurrency))
+                        .keyboardType(.decimalPad)
+                        .focused($amountIsFocused)
+                    
+                    Picker("Number of people", selection: $numberOfPeople) {
+                        ForEach(2..<100) {
+                            Text("\($0) people")
+                        }
+                    }
+                    //.pickerStyle(.navigationLink)
+                }
+                
+                Section("How much do you want to tip?") {
+                    
+                    Picker("Tip percentage", selection: $tipPercentage) {
+                        ForEach(0..<101
+                        ) {
+                            Text($0, format: .percent)
+                        }
+                    }
+                    //si seulement quelques choix
+                    //.pickerStyle(.segmented)
+                }
+                
+                Section("Total Amount") {
+                    Text(grandTotal, format: .currency(code: localCurrency))
+                        .foregroundStyle(tipPercentage == 0 ? .red : .primary)
+                }
+                
+                Section("Amount per person") {
+                    Text(totalPerPerson, format: .currency(code: localCurrency))
+                }
+            }
+            .navigationTitle("WeSplit")
+            .toolbar {
+                if amountIsFocused {
+                    Button("Done") {
+                        amountIsFocused = false
+                    }
+                }
+            }
         }
-        .padding()
     }
 }
+
 
 #Preview {
     ContentView()
